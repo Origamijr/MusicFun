@@ -1,4 +1,5 @@
 import wx
+from gui.opengl_canvas import OpenGLCanvas
 
 class Window(wx.Frame):
 
@@ -6,7 +7,7 @@ class Window(wx.Frame):
         # ensure the parent's __init__ is called
         super(Window, self).__init__(*args, **kw)
 
-        # create a panel in the frame
+        """ # create a panel in the frame
         pnl = wx.Panel(self)
 
         # put some text with a larger bold font on it
@@ -26,7 +27,11 @@ class Window(wx.Frame):
 
         # and a status bar
         self.CreateStatusBar()
-        self.SetStatusText("Welcome to wxPython!")
+        self.SetStatusText("Welcome to wxPython!") """
+
+        self.canvas = OpenGLCanvas(self)
+
+        
 
 
     def makeMenuBar(self):
@@ -85,3 +90,14 @@ class Window(wx.Frame):
         wx.MessageBox("This is a wxPython Hello World sample",
                       "About Hello World 2",
                       wx.OK|wx.ICON_INFORMATION)
+
+def main():
+    app = wx.App()
+
+    window = Window(None, title="Window", size=(1280, 720))
+    window.Show()
+
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()

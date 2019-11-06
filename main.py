@@ -1,13 +1,12 @@
 from gui.window import Window
 import wx
 
-def main():
-    app = wx.App()
-
-    window = Window(None, title="MusicFun")
-    window.Show()
-
-    app.MainLoop()
+class MusicFunApp(wx.App):
+    def OnInit(self):
+        window = Window(None, title="MusicFun", size=(1280, 720))
+        window.Show()
+        return True
 
 if __name__ == '__main__':
-    main()
+    app = MusicFunApp()
+    app.MainLoop()
