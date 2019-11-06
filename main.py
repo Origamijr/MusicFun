@@ -1,9 +1,13 @@
+from gui.window import Window
 import wx
-import mido
 
-app = wx.App()
+def main():
+    app = wx.App()
 
-frame = wx.Frame(None, title='Title')
-frame.Show()
+    window = Window(None, title="MusicFun")
+    window.Show()
 
-app.MainLoop()
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()
