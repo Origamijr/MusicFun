@@ -3,14 +3,18 @@ import numpy as np
 from .node import Node
 import glm
 
+# TODO add comments
+
 class Geode(Node):
 
     def __init__(self, shader, filename=None, material=None, vertices=None, vertices2=None,
-            colors=None, texCoords=None, normals=None, indices=None, **kwargs):
+            colors=None, texCoords=None, normals=None, indices=None, draw_mode=GL_TRIANGLES, **kwargs):
         super().__init__(**kwargs)
         
         self.vao = glGenVertexArrays(1)
         self.shader = shader
+        self.draw_mode = draw_mode
+        self.material = material
 
         self.vertices = np.array(vertices, np.float32).reshape((-1, 3)) if vertices is not None else None
         self.vertices = np.array(vertices2, np.float32).reshape((-1, 2)) if vertices2 is not None else self.vertices
@@ -19,8 +23,6 @@ class Geode(Node):
         self.normals = np.array(normals, np.float32).reshape((-1, 3)) if normals is not None else None
         self.indices = np.array(indices, np.int32).reshape((-1, 3)) if indices is not None else None
         
-        self.material = material
-
         if filename is not None:
             self.parse(filename)
         elif vertices is not None:
@@ -39,9 +41,11 @@ class Geode(Node):
 
 
     def parse(self, filename):
+        # TODO
         pass
 
     def setupVec3(self):
+        # TODO
         pass
 
     def setupVec2(self):
@@ -82,6 +86,7 @@ class Geode(Node):
 
 
     def matchLength(self, a, length):
+        """ Forces np array a to be the given length, using modulus for extension """
         if length > a.size:
             b = a
             while b.size + a.size < length:
@@ -102,8 +107,9 @@ class Geode(Node):
         modelLoc = glGetUniformLocation(self.shader, "model")
         if modelLoc >= 0:
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm.value_ptr(C))
+        # TODO add other uniforms
         
-        glDrawElements(GL_TRIANGLES, self.indices.size, GL_UNSIGNED_INT, None)
+        glDrawElements(self.draw_mode, self.indices.size, GL_UNSIGNED_INT, None)
         
         glBindVertexArray(0)
 

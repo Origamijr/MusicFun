@@ -12,8 +12,11 @@ class OpenGLCanvas(glcanvas.GLCanvas):
     def __init__(self, parent):
         glcanvas.GLCanvas.__init__(self, parent, -1, size=(640, 480))
 
+        self.node_promise = []
+        self.nodes = []
+
         self.init = False
-        self.context = glcanvas.GLContext(self) 
+        self.context = glcanvas.GLContext(self)
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -23,9 +26,8 @@ class OpenGLCanvas(glcanvas.GLCanvas):
     def OnEraseBackground(self, event):
         pass # Do nothing, to avoid flashing on MSW.
 
-
     def OnPaint(self, event):
-        """wx Paint callback"""
+        """ Redraws scene when wx repaints """
         dc = wx.PaintDC(self)
         self.SetCurrent(self.context)
         if not self.init:
@@ -34,17 +36,21 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         self.OnDraw()
 
     def OnResize(self, event):
+        """ Resizes viewport when canvas is resized """
         size = self.GetClientSize()
         glViewport(0, 0, size.width, size.height)
 
     def InitGL(self):
+        """ Basic initialization """
+
         # Set clear color
-        glClearColor(0.1, 0.15, 0.1, 1.0)
+        glClearColor(0.2, 0.1, 0.1, 1.0)
 
-        # Initialize shaders
-        initializeShaders()
-        shaderProgram = getShader("flat2")
+        # Enable blending for alphas
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        # Basic culling planes for 2d canvas
         self.cull_planes_window = [
             (glm.vec3(-1, -1, 0), glm.vec3(-1, 0, 0)),
             (glm.vec3(-1, -1, 0), glm.vec3(0, -1, 0)),
@@ -52,22 +58,32 @@ class OpenGLCanvas(glcanvas.GLCanvas):
             (glm.vec3(1, 1, 0), glm.vec3(0, 1, 0))
         ]
 
-        #vertices = [[0,0.5], [0.5,-0.5], [-0.5,-0.5]]
-        #color = [[1,0,0],[0,1,0],[0,0,1]]
+        # Compile shaders
+        initializeShaders()
 
-        #self.root = Geode(shaderProgram, vertices2=vertices, colors=color)
-
-        midi = MidiFileInterface('midi/samples/prokofiev.mid')
-        midi_node = midi.glNode(shaderProgram)
+        # Add promised nodes
+        for node, shaderName in self.node_promise:
+            self.nodes.append(node.glNode(getShader(shaderName)))
         
-        self.root = Transform(glUtils.translate(-1, -1) * glUtils.scale(1, 2))
-        self.root.addChild(midi_node)
 
+    def addNode(self, node, shaderName):
+        """ Adds an object to be drawn. node must implement glNode """
+        if self.init:
+            # Add node directly
+            self.nodes.append(node.glNode(getShader(shaderName)))
+        else:
+            # Add node to promise queue if not initialized
+            self.node_promise.append((node, shaderName))
 
     def OnDraw(self):
-        #Clear the screen to black
+        """ Draw "callback" """
+        # Clear the screen to black
         glClear(GL_COLOR_BUFFER_BIT)
 
-        self.root.draw(glm.mat4(1), self.cull_planes_window)
+        # Draw all nodes
+        for node in self.nodes:
+            glClear(GL_DEPTH_BUFFER_BIT)
+            node.draw(glm.mat4(1), self.cull_planes_window)
 
+        # Swap the buffers
         self.SwapBuffers()

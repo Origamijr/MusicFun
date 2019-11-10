@@ -1,3 +1,15 @@
 # MusicFun
 
-This is going to be the hub of midi/audio experiments I do in python (As soon as I have time).
+Just some audio/midi experiments in python with a pretty wx/OpenGL gui.
+
+To setup, run 
+
+```bash
+pip install -r requirements.txt
+```
+
+To run, run
+
+```bash
+python main.py
+```

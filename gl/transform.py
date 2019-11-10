@@ -8,7 +8,7 @@ class Transform(Node):
         self.children = []
         self.min_x = self.min_y = self.min_z = self.max_x = self.max_y = self.max_z = None
 
-    def addChild(self, child):
+    def addChild(self, child: Node):
         child_center = glm.vec3(self.M * glm.vec4(child.center, 1))
         child_radius = child.radius * glm.length(self.M * glm.vec4(1, 1, 1, 0)) / glm.sqrt(3)
         if len(self.children) == 0:
@@ -28,12 +28,13 @@ class Transform(Node):
             self.radius += glm.length(self.center - new_center)
             self.center = new_center
             self.radius = max(self.radius, glm.length(child_center - self.center) + child_radius)
-
+            
         self.children.append(child)
 
     def draw(self, C, cull_planes=[]):
         if self.active:
             T = C * self.M
+            # pray that culling makes the program run better
             if not self.cull(T, cull_planes):
                 for child in self.children:
                     child.draw(T, cull_planes=cull_planes)

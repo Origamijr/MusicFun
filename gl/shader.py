@@ -1,9 +1,8 @@
 import sys
 import os
 from OpenGL.GL import *
-#from OpenGL.GL.ARB.shader_objects import *
-#from OpenGL.GL.ARB.fragment_shader import *
-#from OpenGL.GL.ARB.vertex_shader import *
+
+shaders = dict()
 
 def loadSingleShader(filename, shaderType):
     shaderID = glCreateShader(shaderType)
@@ -13,10 +12,7 @@ def loadSingleShader(filename, shaderType):
         glCompileShader(shaderID)
         infoLogLength = glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH)
         if infoLogLength > 0:
-            msg = "Error in %s: %s" % (filename, glGetShaderInfoLog(shaderID))
-        else:
-            msg = "Successfully compiled %s to id %d" % (filename, shaderID)
-        print(msg)
+            print("Error in %s: %s" % (filename, glGetShaderInfoLog(shaderID)))
         return shaderID
 
 def loadShaders(vertID, fragID, name):
@@ -28,10 +24,7 @@ def loadShaders(vertID, fragID, name):
 
     linkStatus = glGetProgramiv(programID, GL_LINK_STATUS)
     if linkStatus != GL_TRUE:
-        msg = "Shader Linking Error: %s" % (glGetShaderInfoLog(programID))
-    else:
-        msg = "Successfully Linked %s" % name
-    print(msg)
+        print("Shader Linking Error: %s" % (glGetShaderInfoLog(programID)))
 
     glDetachShader(programID, vertID)
     glDetachShader(programID, fragID)
@@ -39,9 +32,8 @@ def loadShaders(vertID, fragID, name):
     glDeleteShader(fragID)
     return programID
 
-shaders = dict()
-
 def initializeShaders():
+    """ Compiles all shaders in the "shaders" folder. Must be called after context is created """
     vertFiles = dict()
     fragFiles = dict()
     shaderPath = ""
@@ -59,4 +51,5 @@ def initializeShaders():
             shaders[file[0]] = loadShaders(vertFiles[file[0]], fragFiles[file[0]], file[0])
 
 def getShader(shaderName):
+    """ Get a shader ID for the given file name """
     return shaders[shaderName]
