@@ -1,9 +1,10 @@
 from gui.window import Window
 import wx
+from midi.midi_file_interface import MidiFileInterface
 
 class MusicFunApp(wx.App):
     def OnInit(self):
-        window = Window(None, title="MusicFun", size=(1280, 720))
+        window = Window(title="MusicFun", size=(960, 640))
         window.Show()
         return True
 

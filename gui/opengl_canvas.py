@@ -2,8 +2,11 @@ import wx
 from wx import glcanvas
 from OpenGL.GL import *
 from gl.shader import initializeShaders, getShader
-from gl.geode import Geode
+from gl.transform import Transform
+import gl.glUtils as glUtils
 import numpy as np
+import glm
+from midi.midi_file_interface import MidiFileInterface
 
 class OpenGLCanvas(glcanvas.GLCanvas):
     def __init__(self, parent):
@@ -14,6 +17,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnResize)
 
 
     def OnEraseBackground(self, event):
@@ -29,6 +33,10 @@ class OpenGLCanvas(glcanvas.GLCanvas):
             self.init = True
         self.OnDraw()
 
+    def OnResize(self, event):
+        size = self.GetClientSize()
+        glViewport(0, 0, size.width, size.height)
+
     def InitGL(self):
         # Set clear color
         glClearColor(0.1, 0.15, 0.1, 1.0)
@@ -36,18 +44,30 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         # Initialize shaders
         initializeShaders()
         shaderProgram = getShader("flat2")
-        glUseProgram(shaderProgram)
 
-        vertices = [[0,0.5], [0.5,-0.5], [-0.5,-0.5]]
-        color = [[1,0,0],[0,1,0],[0,0,1]]
+        self.cull_planes_window = [
+            (glm.vec3(-1, -1, 0), glm.vec3(-1, 0, 0)),
+            (glm.vec3(-1, -1, 0), glm.vec3(0, -1, 0)),
+            (glm.vec3(1, 1, 0), glm.vec3(1, 0, 0)),
+            (glm.vec3(1, 1, 0), glm.vec3(0, 1, 0))
+        ]
 
-        self.root = Geode(shaderProgram, vertices2=vertices, color=color)
+        #vertices = [[0,0.5], [0.5,-0.5], [-0.5,-0.5]]
+        #color = [[1,0,0],[0,1,0],[0,0,1]]
+
+        #self.root = Geode(shaderProgram, vertices2=vertices, colors=color)
+
+        midi = MidiFileInterface('midi/samples/prokofiev.mid')
+        midi_node = midi.glNode(shaderProgram)
+        
+        self.root = Transform(glUtils.translate(-1, -1) * glUtils.scale(1, 2))
+        self.root.addChild(midi_node)
 
 
     def OnDraw(self):
         #Clear the screen to black
         glClear(GL_COLOR_BUFFER_BIT)
 
-        self.root.draw(np.identity(4))
+        self.root.draw(glm.mat4(1), self.cull_planes_window)
 
         self.SwapBuffers()
