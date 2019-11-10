@@ -19,12 +19,14 @@ class Node:
 
     def cull(self, C, cull_planes):
         if len(cull_planes) > 0:
+            # Recalculate center and radius based on scene graph traversal
             center = glm.vec3(C * glm.vec4(self.center, 1))
             radius = self.radius * glm.length(C * glm.vec4(1, 1, 1, 0)) / glm.sqrt(3)
             for point, normal in cull_planes:
                 dist = glm.dot(center - point, normal)
                 if dist > radius:
-                    if self.name == "cursor":
+                    # Cull if beyond plane
+                    if self.name == None:
                         print('name:{} point:{!r} norm:{!r} dist:{} r:{} center:{!r} prev_center:{!r}'.format(self.name, point, normal, dist, radius, center, self.center))
                     return True
             return False

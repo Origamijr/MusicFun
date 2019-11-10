@@ -73,11 +73,15 @@ class MidiInterface():
             total_distance = 0
             move_screen_count = 1
             while getattr(t, "running", True):
+                # Sleep so there is a noticeable time difference
                 time.sleep(0.05)
+
+                # Evaluate distances
                 curr_time = time.perf_counter()
                 distance = (curr_time - last_time) * DEF_SECOND_SIZE
                 last_time = curr_time
 
+                # Quick hack to solve synchronization issues
                 if self.cursor_sync is not None:
                     temp_distance = self.cursor_sync * DEF_SECOND_SIZE
                     distance += temp_distance - total_distance
@@ -87,6 +91,7 @@ class MidiInterface():
                     total_distance += distance
                 self.playback_cursor.setMatrix(glUtils.translate(total_distance, 0))
 
+                # Scroll screen if cursor is near end
                 if total_distance > 1.8 * move_screen_count:
                     self.root.translate(-1.8, 0)
                     move_screen_count += 1
@@ -193,7 +198,7 @@ class MidiInterface():
         color = (0.8, 0.8, 0.2)
         cursor_geometry = Geometry(shader, vertices2=vertices, colors=color, draw_mode=GL_LINES, line_width=2)
         self.playback_cursor.addChild(cursor_geometry)
-        #self.playback_cursor.setActive(False)
+        self.playback_cursor.setActive(False)
 
         return self.playback_cursor
 
