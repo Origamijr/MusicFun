@@ -1,4 +1,5 @@
 import glm
+import uuid
 
 class Node:
     def __init__(self, active=True, name="NA"):
@@ -6,6 +7,12 @@ class Node:
         self.center = glm.vec3(0)
         self.radius = 0
         self.name = name
+        self.id = uuid.uuid4()
+
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self.id == other.id
+        return NotImplemented
 
     def setActive(self, active):
         self.active = active
@@ -17,6 +24,7 @@ class Node:
             for point, normal in cull_planes:
                 dist = glm.dot(center - point, normal)
                 if dist > radius:
-                    #print('point:{!r} norm:{!r} dist:{} r:{}'.format(point, normal, dist, radius))
+                    if self.name == "cursor":
+                        print('name:{} point:{!r} norm:{!r} dist:{} r:{} center:{!r} prev_center:{!r}'.format(self.name, point, normal, dist, radius, center, self.center))
                     return True
             return False

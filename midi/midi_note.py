@@ -1,6 +1,5 @@
 from gl.glUtils import translate
 from gl.transform import Transform
-from gl.geode import Geode
 import uuid
 
 class MidiNote:

@@ -5,15 +5,18 @@ import glm
 
 # TODO add comments
 
-class Geode(Node):
+class Geometry(Node):
 
     def __init__(self, shader, filename=None, material=None, vertices=None, vertices2=None,
-            colors=None, texCoords=None, normals=None, indices=None, draw_mode=GL_TRIANGLES, **kwargs):
+            colors=None, texCoords=None, normals=None, indices=None, 
+            draw_mode=GL_TRIANGLES, line_width=1,
+            **kwargs):
         super().__init__(**kwargs)
         
         self.vao = glGenVertexArrays(1)
         self.shader = shader
         self.draw_mode = draw_mode
+        self.line_width = line_width
         self.material = material
 
         self.vertices = np.array(vertices, np.float32).reshape((-1, 3)) if vertices is not None else None
@@ -108,7 +111,9 @@ class Geode(Node):
         if modelLoc >= 0:
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm.value_ptr(C))
         # TODO add other uniforms
-        
+
+        glLineWidth(self.line_width)
+
         glDrawElements(self.draw_mode, self.indices.size, GL_UNSIGNED_INT, None)
         
         glBindVertexArray(0)

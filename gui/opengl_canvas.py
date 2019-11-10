@@ -6,7 +6,6 @@ from gl.transform import Transform
 import gl.glUtils as glUtils
 import numpy as np
 import glm
-from midi.midi_file_interface import MidiFileInterface
 
 class OpenGLCanvas(glcanvas.GLCanvas):
     def __init__(self, parent):
@@ -21,7 +20,11 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_SIZE, self.OnResize)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
 
+    def OnIdle(self, event):
+        # Repaint on idle
+        self.Refresh()
 
     def OnEraseBackground(self, event):
         pass # Do nothing, to avoid flashing on MSW.
@@ -44,7 +47,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         """ Basic initialization """
 
         # Set clear color
-        glClearColor(0.2, 0.1, 0.1, 1.0)
+        glClearColor(0.1, 0.1, 0.15, 1.0)
 
         # Enable blending for alphas
         glEnable(GL_BLEND)
