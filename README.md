@@ -23,6 +23,7 @@ python main.py
 ## Next Steps
 
 * Add the ability to annotate the midi file. Expose this annotation to allow for the primitive display of midi analysis
+* Figure out how to integrate pyo with it's real-time DSP
 * Add an interface for audio (either input from mic/audio file). Possible displays include:
     * One dimensional meters indicating Amplitude, Estimated Pitch, etc
     * Two dimensional realtime DFT/MFCC/etc

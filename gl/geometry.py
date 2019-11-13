@@ -41,6 +41,7 @@ class Geometry(Node):
         max_z = np.max(self.vertices[:,2]) if vertices is not None else 0
         self.center = glm.vec3((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2)
         self.radius = glm.length(glm.vec3(max_x, max_y, max_z) - self.center)
+        self.uniforms = dict()
 
 
     def parse(self, filename):
@@ -48,13 +49,22 @@ class Geometry(Node):
         pass
 
     def setupVec3(self):
-        # TODO
-        pass
+        # Bind VAO
+        glBindVertexArray(self.vao)
+
+        # Bind vertex data
+        self.vbo = [glGenBuffers(1)]
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo[0])
+        glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_STATIC_DRAW)
+        posAttrib = glGetAttribLocation(self.shader, "position")
+        glEnableVertexAttribArray(posAttrib)
+        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, None)
+
+        self.setup_rest(3)
 
     def setupVec2(self):
-
+        # Bind VAO
         glBindVertexArray(self.vao)
-        currVBO = 0
 
         # Bind vertex data
         self.vbo = [glGenBuffers(1)]
@@ -64,10 +74,16 @@ class Geometry(Node):
         glEnableVertexAttribArray(posAttrib)
         glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, None)
 
+        self.setup_rest(2)
+
+
+    def setup_rest(self, dim):
+        currVBO = 0
+
         # Bind color data
         posAttrib = glGetAttribLocation(self.shader, "color")
         if self.colors is not None and posAttrib >= 0:
-                self.colors = self.matchLength(self.colors, self.vertices.size * 3 // 2)
+                self.colors = self.matchLength(self.colors, self.vertices.size * 3 // dim)
                 currVBO += 1
                 self.vbo += [glGenBuffers(1)]
                 glBindBuffer(GL_ARRAY_BUFFER, self.vbo[currVBO])
@@ -77,7 +93,7 @@ class Geometry(Node):
 
         # Bind indices
         if self.indices is None:
-            self.indices = np.indices((1, self.vertices.size // 2))[1,0]
+            self.indices = np.indices((1, self.vertices.size // dim))[1,0]
         currVBO += 1
         self.vbo += [glGenBuffers(1)]
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vbo[currVBO])
@@ -98,24 +114,52 @@ class Geometry(Node):
         else:
             return a[:length]
 
+    def update_vertices(self, data, start=0):
+        glBindVertexArray(self.vao)
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo[0])
+        glBufferSubData(GL_ARRAY_BUFFER, start, data.nbytes, data)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindVertexArray(0)
+
+    def set_uniform(self, name, value, uniform_type):
+        self.uniforms[name] = (value, uniform_type)
 
 
 
 
     def draw(self, C, cull_planes=None):
+        # Set shader
         glUseProgram(self.shader)
 
+        # Bind vertex array
         glBindVertexArray(self.vao)
         
+        # Set uniforms
         modelLoc = glGetUniformLocation(self.shader, "model")
         if modelLoc >= 0:
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm.value_ptr(C))
-        # TODO add other uniforms
 
+        for name in self.uniforms:
+            value, uniform_type = self.uniforms[name]
+            loc = glGetUniformLocation(self.shader, name)
+            if uniform_type == 'int':
+                glUniform1i(loc, value)
+            if uniform_type == 'float':
+                glUniform1f(loc, value)
+            if uniform_type == 'vec2':
+                glUniform2f(loc, value[0], value[1])
+            if uniform_type == 'vec3':
+                glUniform3f(loc, value[0], value[1], value[2])
+            if uniform_type == 'mat4':
+                glUniformMatrix4fv(loc, 1, GL_FALSE, glm.value_ptr(value))
+        
+        # Other draw settings
         glLineWidth(self.line_width)
 
+        # Draw geometry
         glDrawElements(self.draw_mode, self.indices.size, GL_UNSIGNED_INT, None)
         
+        # Unbind vertex array
         glBindVertexArray(0)
 
     def update(self, C):
