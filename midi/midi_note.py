@@ -1,6 +1,7 @@
+import uuid
+
 from gl.glUtils import translate
 from gl.transform import Transform
-import uuid
 
 class MidiNote:
     def __init__(self, note, time, duration, velocity=64):

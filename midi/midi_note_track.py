@@ -1,11 +1,12 @@
-from .midi_note import MidiNote
-from .midi_interface import DEF_SECOND_SIZE
+import uuid
+
+from midi.midi_note import MidiNote
+from midi.midi_interface import DEF_SECOND_SIZE
 from mido.midifiles.tracks import _to_abstime
 from mido.midifiles.units import tick2second
 from gl.transform import Transform
 from gl.geometry import Geometry
 import gl.glUtils as glUtils
-import uuid
 
 def create_midi_note_track(track, ticks_per_beat=48):
     for msg in track:

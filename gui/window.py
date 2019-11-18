@@ -22,7 +22,7 @@ class Panel(wx.Panel):
         self.canvas = OpenGLCanvas(self)
         self.midi_interface = MidiInterface('midi\samples\Sincerely - Violet Evergarden [Transcribed by UnknownEX1].mid')
         #self.midi_interface = MidiInterface('midi\samples\prokofiev.mid')
-        self.canvas.addNode(self.midi_interface, "flat2")
+        self.canvas.addNode(self.midi_interface)
 
         self.play_midi_btn = wx.Button(self, label="Play/Stop", pos=(700, 10), size=(100, 50))
         self.play_midi_btn.SetBackgroundColour('#DDDDFF')

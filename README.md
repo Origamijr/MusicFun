@@ -2,17 +2,46 @@
 
 Just some audio/midi experiments in python with a pretty wx/OpenGL gui.
 
+## Dependencies
+
+### Core
+* wxPython - Handles windows and basic gui elements
+    * https://wxpython.org/pages/downloads/index.html
+* pyOpenGL - Graphics library that allows me to freely draw and animate stuff
+    * http://pyopengl.sourceforge.net/
+* mido - Reads midi files (If I ever get good at file io, I'll replace this since this is all it's doing)
+    * https://mido.readthedocs.io/en/latest/
+* pyo - Real-time audio and DSP handling
+    * http://ajaxsoundstudio.com/pyodoc/index.html
+* numpy - you know... numpy
+
+### Auxiliary
+* pyGLM - Makes matrix handling easier (might replace soon)
+    * https://pypi.org/project/PyGLM/
+* librosa - Inplements key audio analysis functions. Not used yet, but might be relying on it in the future. Will try to make an optional dependency
+    * https://librosa.github.io/librosa/index.html
+
+## Installation
+
 To setup, run 
 
 ```bash
 pip install -r requirements.txt
 ```
 
+Note that this project was built on Windows, so compatibility with other operating systems might require a bit more steps.
+
+There is a known problem with pyGLM and OSX computers. I will try to migrate away from pyGLM slowly.
+
+## Running
+
 To run, run
 
 ```bash
 python main.py
 ```
+
+in the base directory
 
 ## Current Functionality
 
@@ -30,6 +59,7 @@ python main.py
     * Three dimensional time-series of DFT/MFCC/etc
 * Integrate some analysis algorithms. Ones I have in mind are:
     * Chord detection HMM
+    * Self-Similarity matrix
     * Factor Oracle/VMO/Somax(if allowed)
     * Crazy neural net stuff idk how to do yet (primary reason I'm doing this in python)
         * Music/sound classification

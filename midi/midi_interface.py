@@ -1,16 +1,19 @@
 DEF_SECOND_SIZE = 0.2
 
+import time
+import threading
+
 import mido
 from mido.midifiles.tracks import _to_abstime, _to_reltime, merge_tracks
 from mido.midifiles.units import tick2second
-from .midi_note_track import create_midi_note_track
+
+from OpenGL.GL import GL_LINES
+
+from midi.midi_note_track import create_midi_note_track
 from gl.transform import Transform
 from gl.geometry import Geometry
-from OpenGL.GL import GL_LINES
 from audio.pyo_server import s
-import threading
 import gl.glUtils as glUtils
-import time
 
 class MidiInterface():
     """ Interface between mido and pyOpenGL """
@@ -20,6 +23,7 @@ class MidiInterface():
         self.midifile = mido.MidiFile(filename)
 
         # set state variables
+        self.DEFAULT_SHADER = "flat2"
         self.playing = False
 
         # Extract meta messages and the corresponding track

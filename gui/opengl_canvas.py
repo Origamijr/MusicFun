@@ -65,27 +65,34 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         initializeShaders()
 
         # Add promised nodes
-        for node, shaderName in self.node_promise:
-            self.nodes.append(node.glNode(getShader(shaderName)))
+        for node, shader_name, clear_depth_buffer in self.node_promise:
+            # Add node directly
+            if shader_name is not None:
+                self.nodes.append((node.glNode(getShader(shader_name)), clear_depth_buffer))
+            else:
+                self.nodes.append((node.glNode(getShader(node.DEFAULT_SHADER)), clear_depth_buffer))
         
 
-    def addNode(self, node, shaderName):
+    def addNode(self, node, shader_name=None, clear_depth_buffer=False):
         """ Adds an object to be drawn. node must implement glNode """
         if self.init:
             # Add node directly
-            self.nodes.append(node.glNode(getShader(shaderName)))
+            if shader_name is not None:
+                self.nodes.append((node.glNode(getShader(shader_name)), clear_depth_buffer))
+            else:
+                self.nodes.append((node.glNode(getShader(node.DEFAULT_SHADER)), clear_depth_buffer))
         else:
             # Add node to promise queue if not initialized
-            self.node_promise.append((node, shaderName))
+            self.node_promise.append((node, shader_name, clear_depth_buffer))
 
     def OnDraw(self):
         """ Draw "callback" """
-        # Clear the screen to black
+        # Clear the screen to default color
         glClear(GL_COLOR_BUFFER_BIT)
 
         # Draw all nodes
-        for node in self.nodes:
-            glClear(GL_DEPTH_BUFFER_BIT)
+        for node, clear_depth_buffer in self.nodes:
+            if clear_depth_buffer: glClear(GL_DEPTH_BUFFER_BIT)
             node.draw(glm.mat4(1), self.cull_planes_window)
 
         # Swap the buffers
