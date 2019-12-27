@@ -1,11 +1,17 @@
 import wx
 from wx import glcanvas
-from OpenGL.GL import *
-from gl.shader import initializeShaders, getShader
-from gl.transform import Transform
-import gl.glUtils as glUtils
+
 import numpy as np
 import glm
+
+import time
+
+from OpenGL.GL import *
+from gl.shader import initialize_shaders
+from gl.transform import Transform
+from gl.node_object import NodeObject
+#import gl.gl_utils as gl_utils
+
 
 class OpenGLCanvas(glcanvas.GLCanvas):
     def __init__(self, parent):
@@ -13,6 +19,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
 
         self.node_promise = []
         self.nodes = []
+        self.idle_callbacks = []
 
         self.init = False
         self.context = glcanvas.GLContext(self)
@@ -36,6 +43,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         if not self.init:
             self.InitGL()
             self.init = True
+        self.OnUpdate()
         self.OnDraw()
 
     def OnResize(self, event):
@@ -62,28 +70,33 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         ]
 
         # Compile shaders
-        initializeShaders()
+        initialize_shaders()
 
         # Add promised nodes
-        for node, shader_name, clear_depth_buffer in self.node_promise:
+        for node, clear_depth_buffer in self.node_promise:
             # Add node directly
-            if shader_name is not None:
-                self.nodes.append((node.glNode(getShader(shader_name)), clear_depth_buffer))
-            else:
-                self.nodes.append((node.glNode(getShader(node.DEFAULT_SHADER)), clear_depth_buffer))
+            self.nodes.append((node.gl_node(), clear_depth_buffer))
+            if node.idle_callback is not None:
+                self.idle_callbacks.append([node.idle_callback[0], node.idle_callback[1], 0])
         
 
     def addNode(self, node, shader_name=None, clear_depth_buffer=False):
-        """ Adds an object to be drawn. node must implement glNode """
+        """ Adds an object to be drawn. node must implement gl_node (or extend node_emitter) """
         if self.init:
             # Add node directly
-            if shader_name is not None:
-                self.nodes.append((node.glNode(getShader(shader_name)), clear_depth_buffer))
-            else:
-                self.nodes.append((node.glNode(getShader(node.DEFAULT_SHADER)), clear_depth_buffer))
+            self.nodes.append((node.gl_node(), clear_depth_buffer))
+            if node.idle_callback is not None:
+                self.idle_callbacks.append([node.idle_callback[0], node.idle_callback[1], 0])
         else:
             # Add node to promise queue if not initialized
-            self.node_promise.append((node, shader_name, clear_depth_buffer))
+            self.node_promise.append((node, clear_depth_buffer))
+
+    def OnUpdate(self):
+        for i in range(len(self.idle_callbacks)):
+            curr_time = time.time_ns()
+            if curr_time > self.idle_callbacks[i][2] + self.idle_callbacks[i][1] * 1000000000:
+                self.idle_callbacks[i][2] = curr_time
+                self.idle_callbacks[i][0]()
 
     def OnDraw(self):
         """ Draw "callback" """

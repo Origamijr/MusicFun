@@ -1,6 +1,6 @@
 import glm
 from .node import Node
-import gl.glUtils as glUtils
+import gl.gl_utils as gl_utils
 
 class Transform(Node):
     def __init__(self, M=glm.mat4(1), **kwargs):
@@ -9,12 +9,12 @@ class Transform(Node):
         self.children = []
         self.min_x = self.min_y = self.min_z = self.max_x = self.max_y = self.max_z = None
 
-    def applyMatrix(self, M):
+    def apply_matrix(self, M):
         self.center = glm.vec3(M * glm.vec4(self.center, 1))
         self.radius = self.radius * glm.length(M * glm.vec4(1, 1, 1, 0)) / glm.sqrt(3)
         self.M = M * self.M
 
-    def setMatrix(self, M):
+    def set_matrix(self, M):
         self.M = M
         centers = [self.M * glm.vec4(child.center, 1) for child in self.children]
         self.min_x = min([center[0] for center in centers])
@@ -27,9 +27,9 @@ class Transform(Node):
         self.radius = max([glm.length(self.center - child.center) + child.radius for child in self.children])
 
     def translate(self, x, y, z=0):
-        self.applyMatrix(glUtils.translate(x, y, z))
+        self.apply_matrix(gl_utils.translate(x, y, z))
 
-    def addChild(self, child: Node):
+    def add_child(self, child: Node):
         child_center = glm.vec3(self.M * glm.vec4(child.center, 1))
         child_radius = child.radius * glm.length(self.M * glm.vec4(1, 1, 1, 0)) / glm.sqrt(3)
         if len(self.children) == 0:

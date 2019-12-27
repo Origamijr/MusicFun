@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+
+[packages]
+wxpython = "*"
+pyopengl = "*"
+pyo = "*"
+mido = "*"
+librosa = "*"
+pyglm = "*"
+
+[requires]
+python_version = "3.7"

@@ -3,8 +3,9 @@ import os
 from OpenGL.GL import *
 
 shaders = dict()
+initialized = False
 
-def loadSingleShader(filename, shaderType):
+def load_single_shader(filename, shaderType):
     shaderID = glCreateShader(shaderType)
     with open(filename, 'r') as file:
         code = file.read()
@@ -15,7 +16,7 @@ def loadSingleShader(filename, shaderType):
             print("Error in %s: %s" % (filename, glGetShaderInfoLog(shaderID)))
         return shaderID
 
-def loadShaders(vertID, fragID, name):
+def load_shaders(vertID, fragID, name):
     programID = glCreateProgram()
     glAttachShader(programID, vertID)
     glAttachShader(programID, fragID)
@@ -32,8 +33,9 @@ def loadShaders(vertID, fragID, name):
     glDeleteShader(fragID)
     return programID
 
-def initializeShaders():
+def initialize_shaders():
     """ Compiles all shaders in the "shaders" folder. Must be called after context is created """
+    global initialized
     vertFiles = dict()
     fragFiles = dict()
     shaderPath = ""
@@ -44,12 +46,16 @@ def initializeShaders():
         file = os.path.splitext(filename)
         filepath = os.path.join(shaderPath, filename)
         if file[1] == ".vert":
-            vertFiles[file[0]] = loadSingleShader(filepath,  GL_VERTEX_SHADER)
+            vertFiles[file[0]] = load_single_shader(filepath,  GL_VERTEX_SHADER)
         if file[1] == ".frag":
-            fragFiles[file[0]] = loadSingleShader(filepath, GL_FRAGMENT_SHADER)
+            fragFiles[file[0]] = load_single_shader(filepath, GL_FRAGMENT_SHADER)
         if file[0] in vertFiles and file[0] in fragFiles and vertFiles[file[0]] != 0 and fragFiles[file[0]] != 0:
-            shaders[file[0]] = loadShaders(vertFiles[file[0]], fragFiles[file[0]], file[0])
+            shaders[file[0]] = load_shaders(vertFiles[file[0]], fragFiles[file[0]], file[0])
+    initialized = True
 
-def getShader(shaderName):
+def is_ready():
+    return initialized
+
+def get_shader(shader_name):
     """ Get a shader ID for the given file name """
-    return shaders[shaderName]
+    return shaders[shader_name]

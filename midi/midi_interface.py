@@ -9,22 +9,27 @@ from mido.midifiles.units import tick2second
 
 from OpenGL.GL import GL_LINES
 
-from midi.midi_note_track import create_midi_note_track
+from audio.pyo_server import s
+
+from gl.node_object import NodeObject
 from gl.transform import Transform
 from gl.geometry import Geometry
-from audio.pyo_server import s
-import gl.glUtils as glUtils
+import gl.gl_utils as gl_utils
 
-class MidiInterface():
+from midi.midi_note_track import create_midi_note_track
+
+class MidiInterface(NodeObject):
     """ Interface between mido and pyOpenGL """
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, shader="flat2"):
+        super().__init__(name="midi_interface")
+
         # Store the midifile
         self.midifile = mido.MidiFile(filename)
 
         # set state variables
-        self.DEFAULT_SHADER = "flat2"
         self.playing = False
+        self.shader = shader
 
         # Extract meta messages and the corresponding track
         meta_track = []
@@ -48,6 +53,16 @@ class MidiInterface():
             note_track = create_midi_note_track(merged_track, ticks_per_beat=self.midifile.ticks_per_beat)
             if note_track is not None:
                 self.tracks.append(note_track)
+                
+    def gl_node_init(self):
+        super().gl_node_init()
+        self.track_t = Transform(gl_utils.translate(-1, -1) * gl_utils.scale(1, 2))
+        colors = [(0, 0.3, 0.6), (0, 0.6, 0.3), (0.5, 0.2, 0.2)]
+        for i, track in enumerate(self.tracks):
+            self.track_t.add_child(track.gl_node(self.shader, color=colors[i % len(colors)]))
+        self.track_t.add_child(self.generate_div_marks(self.shader, div=4))
+        self.track_t.add_child(self.generate_playback_cursor(self.shader))
+        self.gl_node_add_child(self.track_t)
 
     def play(self):
         """ Creates a thread that sends midi messages to be played """
@@ -93,15 +108,15 @@ class MidiInterface():
                     self.cursor_sync = None
                 else:
                     total_distance += distance
-                self.playback_cursor.setMatrix(glUtils.translate(total_distance, 0))
+                self.playback_cursor.set_matrix(gl_utils.translate(total_distance, 0))
 
                 # Scroll screen if cursor is near end
                 if total_distance > 1.8 * move_screen_count:
-                    self.root.translate(-1.8, 0)
+                    self.track_t.translate(-1.8, 0)
                     move_screen_count += 1
 
             self.playback_cursor.setActive(False)
-            self.root.setMatrix(glUtils.translate(-1, -1) * glUtils.scale(1, 2))
+            self.track_t.set_matrix(gl_utils.translate(-1, -1) * gl_utils.scale(1, 2))
 
         self.send_midi_thread = threading.Thread(target=_send_midi_task)
         self.send_midi_thread.daemon = True
@@ -116,16 +131,6 @@ class MidiInterface():
         self.send_midi_thread.running = False
         self.move_cursor_thread.running = False
         self.playing = False
-
-    def glNode(self, shader):
-        """ Generates a scene graph node to render """
-        self.root = Transform(glUtils.translate(-1, -1) * glUtils.scale(1, 2))
-        colors = [(0, 0.3, 0.6), (0, 0.6, 0.3), (0.5, 0.2, 0.2)]
-        for i, track in enumerate(self.tracks):
-            self.root.addChild(track.glNode(shader, color=colors[i % len(colors)]))
-        self.root.addChild(self.generate_div_marks(shader, div=4))
-        self.root.addChild(self.generate_playback_cursor(shader))
-        return self.root
 
     def generate_div_marks(self, shader, div=4):
         """ Creates those grey bars to denote a pulse """
@@ -172,21 +177,21 @@ class MidiInterface():
             last_tick = curr_tick
 
             # Create transform and parent the note geometry
-            t = Transform(glUtils.translate(total_shift, 0), name="div_{}".format(curr_div))
-            t.addChild(div_geometry)
-            chunk.addChild(t)
+            t = Transform(gl_utils.translate(total_shift, 0), name="div_{}".format(curr_div))
+            t.add_child(div_geometry)
+            chunk.add_child(t)
             chunk_counter += 1
 
             # Break into chunks for better rendering performance
             if chunk_counter >= chunk_limit:
-                root.addChild(chunk)
+                root.add_child(chunk)
                 chunk_count += 1
                 chunk = Transform(name="div_chunk_{}".format(chunk_count))
                 chunk_counter = 0
             
             curr_div += 1
 
-        if chunk_counter > 0: root.addChild(chunk)
+        if chunk_counter > 0: root.add_child(chunk)
 
         return root
 
@@ -201,7 +206,7 @@ class MidiInterface():
         ]
         color = (0.8, 0.8, 0.2)
         cursor_geometry = Geometry(shader, vertices2=vertices, colors=color, draw_mode=GL_LINES, line_width=2)
-        self.playback_cursor.addChild(cursor_geometry)
+        self.playback_cursor.add_child(cursor_geometry)
         self.playback_cursor.setActive(False)
 
         return self.playback_cursor

@@ -13,7 +13,7 @@ Just some audio/midi experiments in python with a pretty wx/OpenGL gui.
     * https://mido.readthedocs.io/en/latest/
 * pyo - Real-time audio and DSP handling
     * http://ajaxsoundstudio.com/pyodoc/index.html
-* numpy - you know... numpy
+* numpy - you know... numpy (it should already be installed as a sub-package)
 
 ### Auxiliary
 * pyGLM - Makes matrix handling easier (might replace soon)
@@ -28,6 +28,8 @@ To setup, run
 ```bash
 pip install -r requirements.txt
 ```
+
+I was experimenting with pipenv a bit, so there is also a Pipfile for that.
 
 Note that this project was built on Windows, so compatibility with other operating systems might require a bit more steps.
 
@@ -48,12 +50,12 @@ in the base directory
 * Able to launch a wxPython window with a bound pyOpnGL canvas
 * Scene graph graphics framework for ease of use with visibility culling to improve performance
 * Midi file loading, rendering, and playback
+* Real-time waveform/spectrogram display from mic
 
 ## Next Steps
 
 * Add the ability to annotate the midi file. Expose this annotation to allow for the primitive display of midi analysis
-* Figure out how to integrate pyo with it's real-time DSP
-* Add an interface for audio (either input from mic/audio file). Possible displays include:
+* Add more interfaces for audio (either input from mic/audio file). Possible displays include:
     * One dimensional meters indicating Amplitude, Estimated Pitch, etc
     * Two dimensional realtime DFT/MFCC/etc
     * Three dimensional time-series of DFT/MFCC/etc
