@@ -6,7 +6,7 @@ from mido.midifiles.tracks import _to_abstime
 from mido.midifiles.units import tick2second
 from gl.transform import Transform
 from gl.geometry import Geometry
-import gl.glUtils as glUtils
+import gl.gl_utils as gl_utils
 
 def create_midi_note_track(track, ticks_per_beat=48):
     for msg in track:
@@ -14,7 +14,7 @@ def create_midi_note_track(track, ticks_per_beat=48):
             return MidiNoteTrack(track, ticks_per_beat=ticks_per_beat)
     return None
 
-class MidiNoteTrack:
+class MidiNoteTrack():
     def __init__(self, track, ticks_per_beat=48):
         self.id = uuid.uuid4()
         self.ticks_per_beat = ticks_per_beat
@@ -32,7 +32,7 @@ class MidiNoteTrack:
                 self.tempos.append((msg.time, msg.tempo))
         self.notes.sort(key=lambda x: (x.time, x.note))
 
-    def glNode(self, shader, color=(1, 1, 1)):
+    def gl_node(self, shader, color=(1, 1, 1)):
         # Create root node for track
         root = Transform(name="track{}".format(self.id))
 
@@ -87,19 +87,19 @@ class MidiNoteTrack:
             #print('shift:{} size:{} - time:{} duration:{}'.format(total_shift, timescale, note.time, note.duration))
 
             # Create note transform and parent the note geometry
-            t = Transform(glUtils.translate(total_shift, note.note / 128) * glUtils.scale(timescale, 1 / 128), name="note{}".format(note.id))
-            t.addChild(note_geometry)
-            chunk.addChild(t)
+            t = Transform(gl_utils.translate(total_shift, note.note / 128) * gl_utils.scale(timescale, 1 / 128), name="note{}".format(note.id))
+            t.add_child(note_geometry)
+            chunk.add_child(t)
             chunk_counter += 1
 
             # Break into chunks for better rendering performance
             if chunk_counter >= chunk_limit:
-                root.addChild(chunk)
+                root.add_child(chunk)
                 chunk_count += 1
                 chunk = Transform(name="chunk{}_{}".format(self.id, chunk_count))
                 chunk_counter = 0
 
-        if chunk_counter > 0: root.addChild(chunk)
+        if chunk_counter > 0: root.add_child(chunk)
 
         return root
 

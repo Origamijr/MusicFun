@@ -1,7 +1,11 @@
-from OpenGL.GL import *
 import numpy as np
-from .node import Node
+
 import glm
+
+from OpenGL.GL import *
+
+from gl.node import Node
+from gl.shader import get_shader, is_ready
 
 # TODO add comments
 
@@ -13,8 +17,13 @@ class Geometry(Node):
             **kwargs):
         super().__init__(**kwargs)
         
+        # Acquire shader is promised
+        if isinstance(shader, str):
+            self.shader = get_shader(shader)
+        else:
+            self.shader = shader
+            
         self.vao = glGenVertexArrays(1)
-        self.shader = shader
         self.draw_mode = draw_mode
         self.line_width = line_width
         self.material = material
@@ -24,7 +33,7 @@ class Geometry(Node):
         self.colors = np.array(colors, np.float32).reshape((-1, 3)) if colors is not None else None
         self.texCoords = np.array(texCoords, np.float32).reshape((-1, 2)) if texCoords is not None else None
         self.normals = np.array(normals, np.float32).reshape((-1, 3)) if normals is not None else None
-        self.indices = np.array(indices, np.int32).reshape((-1, 3)) if indices is not None else None
+        self.indices = np.array(indices, np.int32).reshape((-1, 1)) if indices is not None else None
         
         if filename is not None:
             self.parse(filename)

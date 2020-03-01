@@ -1,6 +1,5 @@
 import uuid
 
-from gl.glUtils import translate
 from gl.transform import Transform
 
 class MidiNote:
