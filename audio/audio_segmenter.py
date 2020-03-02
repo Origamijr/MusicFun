@@ -1,7 +1,7 @@
 import pyo
 import librosa
 import numpy as np
-import threading
+import threading, time
 from OpenGL.GL import GL_LINE_STRIP, GL_TRIANGLES, glGenVertexArrays
 
 from audio.config import SAMPLE_RATE
@@ -18,10 +18,15 @@ class AudioSegmenter(pyo.PyoObject):
         self.overlap = overlap
         self.buf_size = buf_size
         self.sr = sr
+        self.table_count = 3
 
         self.data = []
         self.np_emitter = NpBuffer(self.input, length=self.buf_size, overlap=self.overlap)
         self.trig = pyo.TrigFunc(self.np_emitter['trig'], self.get_data_rt)
+        self.tables = self.table_count * [pyo.DataTable(self.buf_size)]
+        self.faders = self.table_count * [pyo.Fader(fadein=overlap/sr, fadeout=overlap/sr, dur=buf_size/sr, mul=0.5)]
+        self.oscs = [pyo.Osc(t, freq=self.sr / self.buf_size, mul=f) for t, f in zip(self.tables, self.faders)]
+        # TODO add oscs
         self._base_objs = self.input.getBaseObjects()
 
     def get_data_rt(self):
@@ -31,7 +36,7 @@ class AudioSegmenter(pyo.PyoObject):
             y = np.array(self.np_emitter.np_buffer)
 
             # Add the buffer to the data list
-            data.append(y)
+            self.data.append(y)
 
     def get_slice(self, time, duration):
         frame = (int)(time * self.sr) / self.buf_size
@@ -44,13 +49,29 @@ class AudioSegmenter(pyo.PyoObject):
             frame_samp = 0
         return a
 
-    def play(self):
+    def record(self):
         self.playing = True
         self.np_emitter.play()
 
-    def stop(self):
+    def stop_record(self):
         self.playing = False
         self.np_emitter.stop()
 
     def clear(self):
         self.data = []
+
+    def play(self, seq=None):
+        if seq is None: seq = [i for i in range(len(data))]
+        duration = (self.buf_size - self.overlap) / self.sr
+        print(duration)
+        for osc in self.oscs: osc.out()
+
+        for i, frame in enumerate(seq):
+            thread = threading.Thread(target=self.play_table, args=(frame, i % self.table_count, i * duration))
+            thread.start()
+
+    def play_table(self, frame, player, delay):
+        time.sleep(delay)
+        self.tables[player].replace(list(self.data[frame]))
+        self.oscs[player].out()
+        self.faders[player].play()
