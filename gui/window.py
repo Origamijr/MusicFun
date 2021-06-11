@@ -1,7 +1,7 @@
 import wx
 from gui.opengl_canvas import OpenGLCanvas
 from midi.midi_interface import MidiInterface
-from audio.pyo_server import f
+#from audio.pyo_server import f
 
 class Window(wx.Frame):
 
@@ -20,8 +20,8 @@ class Panel(wx.Panel):
         self.SetBackgroundColour('#9999AA')
 
         self.canvas = OpenGLCanvas(self)
-        #self.midi_interface = MidiInterface('midi\samples\Sincerely - Violet Evergarden [Transcribed by UnknownEX1].mid')
-        self.midi_interface = MidiInterface('midi\samples\prokofiev.mid')
+        self.midi_interface = MidiInterface('midi\samples\Sincerely - Violet Evergarden [Transcribed by UnknownEX1].mid')
+        #self.midi_interface = MidiInterface('midi\samples\prokofiev.mid')
         self.canvas.addNode(self.midi_interface)
 
         #self.canvas.addNode(f)

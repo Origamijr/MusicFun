@@ -22,7 +22,7 @@ if __name__ == "__main__":
     import time
 
     print("recording...")
-    seg = AudioSegmenter(mic, buf_size=2*16384, overlap=4*4096)
+    seg = AudioSegmenter(mic, buf_size=4*16384, overlap=4*4096)
     seg.record()
     time.sleep(10)
     seg.stop_record()

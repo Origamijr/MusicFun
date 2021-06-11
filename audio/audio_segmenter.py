@@ -1,31 +1,23 @@
 import pyo
-import librosa
 import numpy as np
 import threading, time
-from OpenGL.GL import GL_LINE_STRIP, GL_TRIANGLES, glGenVertexArrays
 
 from audio.config import SAMPLE_RATE
 from audio.numpy_buffer import NpBuffer
 
-from gl.geometry import Geometry
-from gl.transform import Transform
-from gl.node_object import NodeObject
-from gl.gl_utils import gl_ready, translate, scale, rotate
-
 class AudioSegmenter(pyo.PyoObject):
-    def __init__(self, input, buf_size=8192, overlap=1024, sr=44100):
+    def __init__(self, input, buf_size=8192, overlap=1024):
         self.input = input
         self.overlap = overlap
         self.buf_size = buf_size
-        self.sr = sr
         self.table_count = 3
 
         self.data = []
         self.np_emitter = NpBuffer(self.input, length=self.buf_size, overlap=self.overlap)
         self.trig = pyo.TrigFunc(self.np_emitter['trig'], self.get_data_rt)
         self.tables = self.table_count * [pyo.DataTable(self.buf_size)]
-        self.faders = self.table_count * [pyo.Fader(fadein=overlap/sr, fadeout=overlap/sr, dur=buf_size/sr, mul=0.5)]
-        self.oscs = [pyo.Osc(t, freq=self.sr / self.buf_size, mul=f) for t, f in zip(self.tables, self.faders)]
+        self.faders = self.table_count * [pyo.Fader(fadein=overlap/SAMPLE_RATE, fadeout=overlap/SAMPLE_RATE, dur=buf_size/SAMPLE_RATE, mul=0.5)]
+        self.oscs = [pyo.Osc(t, freq=SAMPLE_RATE / self.buf_size, mul=f) for t, f in zip(self.tables, self.faders)]
         # TODO add oscs
         self._base_objs = self.input.getBaseObjects()
 
@@ -39,9 +31,9 @@ class AudioSegmenter(pyo.PyoObject):
             self.data.append(y)
 
     def get_slice(self, time, duration):
-        frame = (int)(time * self.sr) / self.buf_size
-        frame_samp = (int)(time * self.sr) % self.buf_size
-        tot_samps = (int)(duration * self.sr)
+        frame = (int)(time * SAMPLE_RATE) / self.buf_size
+        frame_samp = (int)(time * SAMPLE_RATE) % self.buf_size
+        tot_samps = (int)(duration * SAMPLE_RATE)
         a = np.zeros(tot_samps)
         while tot_samps > 0:
             copy_size = min(self.buf_size - frame_samp, tot_samps)
@@ -61,8 +53,8 @@ class AudioSegmenter(pyo.PyoObject):
         self.data = []
 
     def play(self, seq=None):
-        if seq is None: seq = [i for i in range(len(data))]
-        duration = (self.buf_size - self.overlap) / self.sr
+        if seq is None: seq = [i for i in range(len(self.data))]
+        duration = (self.buf_size - self.overlap) / SAMPLE_RATE
         print(duration)
         for osc in self.oscs: osc.out()
 
