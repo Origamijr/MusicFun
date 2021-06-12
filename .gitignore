@@ -4,3 +4,4 @@ venv/
 others/
 __pycache__
 data/*
+*.pyc
