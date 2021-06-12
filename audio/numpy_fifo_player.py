@@ -21,12 +21,14 @@ class NumpyFIFOPlayer(pyo.PyoObject):
         if self.patience is None: self.patience = self.buffer_count
         self.tables = self.buffer_count * [pyo.DataTable(self.buf_size)]
         self.faders = self.buffer_count * [pyo.Fader(fadein=overlap/SAMPLE_RATE, fadeout=overlap/SAMPLE_RATE, dur=buf_size/SAMPLE_RATE, mul=0.5)]
-        self.oscs = [pyo.Osc(t, freq=SAMPLE_RATE / self.buf_size, mul=f) for t, f in zip(self.tables, self.faders)]
+        self.oscs = [pyo.TableRead(t, mul=f) for t, f in zip(self.tables, self.faders)]
         self.sum = reduce(lambda a, b: a + b, self.oscs)
         self._base_objs = self.sum.getBaseObjects()
 
     def _rotate_buf(self):
+        ret = self.curr_buf
         self.curr_buf = (self.curr_buf + 1) % self.buffer_count
+        return ret
 
     def put(self, buf):
         assert buf.shape == (self.buf_size,)
@@ -44,8 +46,18 @@ class NumpyFIFOPlayer(pyo.PyoObject):
         else:
             self.fifo.put(buf)
 
+    def _load_table(self, ind):
+        self.oscs[ind].play()
+        self.faders[ind].play()
+
+    def _play_table(self, ind):
+        self.oscs[ind].play()
+        self.faders[ind].play()
+
     def play(self):
         self.is_playing = True
         return self
 
-    
+    def stop(self):
+        self.is_playing = False
+        return self
