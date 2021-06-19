@@ -5,3 +5,4 @@ others/
 __pycache__
 data/*
 *.pyc
+audio/samples/

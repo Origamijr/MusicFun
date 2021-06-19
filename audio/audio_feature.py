@@ -44,7 +44,7 @@ class AudioFeature(pyo.PyoObject, NodeObject):
             print("invalid feature mode >:(")
 
         self.data = None
-        self.np_emitter = NpBuffer(self.input, length=self.buf_size, overlap=self.overlap)
+        self.np_emitter = NpBuffer(self.input, buf_size=self.buf_size, overlap=self.overlap)
         #self.pat = pyo.Pattern(function=self.update_geometry, time=update_time)
         self.trig = pyo.TrigFunc(self.np_emitter['trig'], self.extract_feature_rt)
         self._base_objs = self.input.getBaseObjects()

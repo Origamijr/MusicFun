@@ -13,7 +13,7 @@ class AudioSegmenter(pyo.PyoObject):
         self.table_count = 3
 
         self.data = []
-        self.np_emitter = NpBuffer(self.input, length=self.buf_size, overlap=self.overlap)
+        self.np_emitter = NpBuffer(self.input, buf_size=self.buf_size, overlap=self.overlap)
         self.trig = pyo.TrigFunc(self.np_emitter['trig'], self.get_data_rt)
         self.tables = self.table_count * [pyo.DataTable(self.buf_size)]
         self.faders = self.table_count * [pyo.Fader(fadein=overlap/SAMPLE_RATE, fadeout=overlap/SAMPLE_RATE, dur=buf_size/SAMPLE_RATE, mul=0.5)]

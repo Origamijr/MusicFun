@@ -17,7 +17,7 @@ class NpBuffer(pyo.PyoObject):
         y = np.array(self.np_emitter.np_buffer)
     """
 
-    def __init__(self, input, length=882, buffer_count=2, overlap=0):
+    def __init__(self, input, buf_size=SAMPLE_RATE, buffer_count=2, overlap=0):
         """
         Parameters
         ----------
@@ -31,7 +31,8 @@ class NpBuffer(pyo.PyoObject):
             Number of overlapping samples between adjacent buffers
         """
 
-        duration = (length - overlap) / SAMPLE_RATE
+        self.buf_size = buf_size
+        duration = (buf_size - overlap) / SAMPLE_RATE
         self.last_thread = None
         self.data_ready = pyo.Trig()
         self.rec_triggers = []
@@ -72,10 +73,14 @@ class NpBuffer(pyo.PyoObject):
         if self.overlap > 0: self.overlap_buffer = self.np_buffer[-self.overlap:]
         self.data_ready.play()
 
+    def getBuffer(self):
+        if self.np_buffer is None: return None
+        return np.array(self.np_buffer)
+
     def play(self, dur=0, delay=0):
         self.playing = True
         self.curr_buf = 0
-        self.rec_triggers[self.curr_buf].play()
+        self.rec_triggers[self.curr_buf].play(delay=delay)
         return self
 
     def stop(self, wait=0):
