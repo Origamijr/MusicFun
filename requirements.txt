@@ -2,7 +2,7 @@
 audioread==2.1.8
 cffi==1.13.2
 decorator==4.4.1
-joblib==0.14.1
+joblib==1.2.0
 librosa==0.7.1
 llvmlite==0.30.0
 mido==1.2.9
