@@ -2,6 +2,8 @@
 
 Just some audio/midi experiments in python with a pretty wx/OpenGL gui.
 
+On hold atm. Will resume when my research horseshoes back to music
+
 ## Dependencies
 
 ### Core
